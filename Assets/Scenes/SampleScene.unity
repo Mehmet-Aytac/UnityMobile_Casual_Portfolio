@@ -705,6 +705,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ef81961c5999fc48b84633afa75e63f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bulletPool: {fileID: 0}
+  weaponType: {fileID: 0}
+  firePoint: {fileID: 0}
 --- !u!1 &1254819992
 GameObject:
   m_ObjectHideFlags: 0
