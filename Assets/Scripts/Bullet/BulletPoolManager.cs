@@ -31,12 +31,25 @@ public class BulletPoolManager : MonoBehaviour
             );
 
             poolDict[data.bulletType.id] = pool;
+
+            // Prewarm without re-instantiating inside CreateBullet again
+            for (int i = 0; i < data.defaultCapacity; i++)
+            {
+                var bullet = pool.Get();
+                pool.Release(bullet);
+            }
         }
     }
 
     Bullet CreateBullet(PoolData data)
     {
         Bullet b = Instantiate(data.bulletType.prefab).GetComponent<Bullet>();
+        if (b == null)
+        {
+            Debug.LogError($"Prefab for {data.bulletType.id} has no Bullet component!");
+            return null;
+        }
+
         b.SetPool(poolDict[data.bulletType.id]);
         return b;
     }
@@ -46,7 +59,9 @@ public class BulletPoolManager : MonoBehaviour
         if (!poolDict.TryGetValue(bulletType.id, out var pool)) return;
         Bullet b = pool.Get();
         b.Initialize(bulletType, pos);
-        b.transform.SetParent(SceneOrganizer.bulletRoot, false);
+        Transform parent = GetOrCreateGroup(SceneOrganizer.bulletRoot, bulletType.id);
+        b.transform.SetParent(parent, false);
+
     }
 
 

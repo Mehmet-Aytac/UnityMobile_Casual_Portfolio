@@ -31,12 +31,24 @@ public class EnemyPoolManager : MonoBehaviour
             );
 
             poolDict[data.enemyType.id] = pool;
+
+            // Prewarm without re-instantiating inside CreateEnemy again
+            for (int i = 0; i < data.defaultCapacity; i++)
+            {
+                var enemy = pool.Get();
+                pool.Release(enemy);
+            }
         }
     }
 
     Enemy CreateEnemy(PoolData data)
     {
         Enemy e = Instantiate(data.enemyType.prefab).GetComponent<Enemy>();
+        if (e == null)
+        {
+            Debug.LogError($"Prefab for {data.enemyType.id} has no Enemy component!");
+            return null;
+        }
         e.SetPool(poolDict[data.enemyType.id]);
         return e;
     }
@@ -46,7 +58,8 @@ public class EnemyPoolManager : MonoBehaviour
         if (!poolDict.TryGetValue(enemyType.id, out var pool)) return;
         Enemy b = pool.Get();
         b.Initialize(enemyType, pos);
-        b.transform.SetParent(SceneOrganizer.enemyRoot, false);
+        Transform parent = GetOrCreateGroup(SceneOrganizer.enemyRoot, enemyType.id);
+        b.transform.SetParent(parent, false);
     }
 
 
