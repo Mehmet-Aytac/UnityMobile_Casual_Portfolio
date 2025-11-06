@@ -7,6 +7,7 @@ public class Bullet : MonoBehaviour
 
     private BulletType type;
     private Vector3 bulletSpawnLoc;
+    private Vector3 velocity;
 
     // Reference to the object pool
     private ObjectPool<Bullet> pool;
@@ -17,29 +18,31 @@ public class Bullet : MonoBehaviour
         pool = bulletPool;
     }
 
+    public void ResetState()
+    {
+        type = null;
+    }
+
 
     public void Initialize(BulletType bulletType, Vector3 spawnLocation)
     {
         type = bulletType;
         transform.position = spawnLocation;
         bulletSpawnLoc = spawnLocation;
+        velocity = Vector3.forward * type.stats.speed;
     }
 
 
-    private void Update()
+    void FixedUpdate()
     {
         // Move the bullet forward
-        transform.Translate(type.stats.speed * Time.deltaTime * Vector3.forward);
+        transform.position += velocity * Time.fixedDeltaTime;
 
         // Check if the bullet has exceeded its range then return it to the pool
-        if (Vector3.Distance(bulletSpawnLoc,transform.position) >= type.stats.range)
-        {
+        if ((transform.position - bulletSpawnLoc).sqrMagnitude >= type.stats.range * type.stats.range)
             pool.Release(this);
-        }
     }
-
-
-
+  
 
     private void OnTriggerEnter(Collider other)
     {
@@ -49,7 +52,7 @@ public class Bullet : MonoBehaviour
         {
             damageable.TakeDamage(type.stats.damage);
         }
-        
+        if (pool == null) return;
         // Return bullet to pool when it hits something
         pool.Release(this);
     }

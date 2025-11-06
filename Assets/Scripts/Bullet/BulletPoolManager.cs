@@ -8,13 +8,13 @@ public class BulletPoolManager : MonoBehaviour
     public class PoolData
     {
         public BulletType bulletType;
-        public int defaultCapacity = 50;
-        public int maxSize = 200;
+        public int defaultCapacity = 100;
+        public int maxSize = 500;
     }
 
     public List<PoolData> pools;
 
-    private Dictionary<string, ObjectPool<Bullet>> poolDict = new();
+    private Dictionary<int, ObjectPool<Bullet>> poolDict = new();
 
     void Awake()
     {
@@ -23,14 +23,14 @@ public class BulletPoolManager : MonoBehaviour
             ObjectPool<Bullet> pool = new ObjectPool<Bullet>(
                 createFunc:() => CreateBullet(data),
                 actionOnGet: b => b.gameObject.SetActive(true),
-                actionOnRelease: b => b.gameObject.SetActive(false),
+                actionOnRelease: OnBulletRelease,
                 actionOnDestroy: b => Destroy(b.gameObject),
                 collectionCheck: false,
                 defaultCapacity: data.defaultCapacity,
                 maxSize: data.maxSize
             );
 
-            poolDict[data.bulletType.id] = pool;
+            poolDict[data.bulletType.idHash] = pool;
 
             // Prewarm without re-instantiating inside CreateBullet again
             for (int i = 0; i < data.defaultCapacity; i++)
@@ -41,6 +41,12 @@ public class BulletPoolManager : MonoBehaviour
         }
     }
 
+    
+    void OnBulletRelease(Bullet b)
+    {
+        b.ResetState();
+        b.gameObject.SetActive(false);
+    }
     Bullet CreateBullet(PoolData data)
     {
         Bullet b = Instantiate(data.bulletType.prefab).GetComponent<Bullet>();
@@ -50,13 +56,13 @@ public class BulletPoolManager : MonoBehaviour
             return null;
         }
 
-        b.SetPool(poolDict[data.bulletType.id]);
+        b.SetPool(poolDict[data.bulletType.idHash]);
         return b;
     }
 
     public void SpawnBullet(BulletType bulletType, Vector3 pos)
     {
-        if (!poolDict.TryGetValue(bulletType.id, out var pool)) return;
+        if (!poolDict.TryGetValue(bulletType.idHash, out var pool)) return;
         Bullet b = pool.Get();
         b.Initialize(bulletType, pos);
         Transform parent = GetOrCreateGroup(SceneOrganizer.bulletRoot, bulletType.id);

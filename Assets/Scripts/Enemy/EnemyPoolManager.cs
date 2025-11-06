@@ -9,14 +9,14 @@ public class EnemyPoolManager : MonoBehaviour
     {
         public EnemyType enemyType;
         public int defaultCapacity = 50;
-        public int maxSize = 200;
+        public int maxSize = 250;
     }
 
     public List<PoolData> pools;
 
-    private Dictionary<string, ObjectPool<Enemy>> poolDict = new();
+    private Dictionary<int, ObjectPool<Enemy>> poolDict = new();
 
-    void Awake()
+    void Start()
     {
         foreach (var data in pools)
         {
@@ -30,7 +30,7 @@ public class EnemyPoolManager : MonoBehaviour
                 maxSize: data.maxSize
             );
 
-            poolDict[data.enemyType.id] = pool;
+            poolDict[data.enemyType.idHash] = pool;
 
             // Prewarm without re-instantiating inside CreateEnemy again
             for (int i = 0; i < data.defaultCapacity; i++)
@@ -49,13 +49,13 @@ public class EnemyPoolManager : MonoBehaviour
             Debug.LogError($"Prefab for {data.enemyType.id} has no Enemy component!");
             return null;
         }
-        e.SetPool(poolDict[data.enemyType.id]);
+        e.SetPool(poolDict[data.enemyType.idHash]);
         return e;
     }
 
     public void SpawnEnemy(EnemyType enemyType, Vector3 pos)
     {
-        if (!poolDict.TryGetValue(enemyType.id, out var pool)) return;
+        if (!poolDict.TryGetValue(enemyType.idHash, out var pool)) return;
         Enemy b = pool.Get();
         b.Initialize(enemyType, pos);
         Transform parent = GetOrCreateGroup(SceneOrganizer.enemyRoot, enemyType.id);

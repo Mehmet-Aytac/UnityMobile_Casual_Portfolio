@@ -10,10 +10,14 @@ public class SceneOrganizer : MonoBehaviour
 {
     public static Transform enemyRoot;
     public static Transform bulletRoot;
+    public static Transform collectableRoot;
+    public static Transform characterRoot;
 
     void Awake()
     {
         enemyRoot = new GameObject("Enemies").transform;
         bulletRoot = new GameObject("Bullets").transform;
+        collectableRoot = new GameObject("Collectables").transform;
+        characterRoot = new GameObject("Characters").transform;
     }
 }

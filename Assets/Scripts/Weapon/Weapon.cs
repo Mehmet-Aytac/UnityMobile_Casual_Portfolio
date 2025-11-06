@@ -1,153 +1,47 @@
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class Weapon : MonoBehaviour
 {
+    WeaponManager weaponManager;
+    [SerializeField] Transform firePoint;
 
-    // will create a CachedStats that holds all current weapon and bullet stats in memory. 
-    // it will be used when spawning bullets.
-    // it will only updated when something changes.
-    // that way we don't have to calculate updated stats every Shoot() called.
+    // Reference to the object pool
+    private ObjectPool<Weapon> pool;
 
-    public struct CachedStats
+    // Method to set the pool reference
+    public void SetPool(ObjectPool<Weapon> weaponPool)
     {
-        public float bulletSpeed;
-        public float bulletDamage;
-        public float bulletRange;
-        public float fireRate;
-        public BulletType bulletType;
-    }
-
-    public BulletPoolManager bulletPool;
-    public WeaponType weaponType;
-    public Transform firePoint;
-
-    private float fireTimer;
-    private List<WeaponUpgrade> activeUpgrades = new();
-    private CachedStats cachedStats;
-
-
-
-
-
-
-    void RecalculateCachedStats()
-    {
-        cachedStats.bulletSpeed = CalculateBulletSpeed();
-        cachedStats.bulletDamage = CalculateBulletDamage();
-        cachedStats.bulletRange = CalculateBulletRange();
-        cachedStats.fireRate = CalculateFireRate();
-        cachedStats.bulletType = GetCurrentBulletType();
-
+        pool = weaponPool;
     }
 
 
-    void Update()
+    public void Initialize()
     {
-        fireTimer += Time.deltaTime;
-        if (fireTimer >= cachedStats.fireRate)
-        {
-            Shoot();
-            fireTimer = 0f;
-        }
+        weaponManager = ServiceLocator.Get<WeaponManager>();
     }
 
-    void Shoot()
+
+    // Register and unregister with WeaponManager
+    void OnEnable()
     {
-        BulletType type = cachedStats.bulletType;
-        bulletPool.SpawnBullet(type, firePoint.position);
+        if (weaponManager != null)
+            weaponManager.RegisterWeapon(this);
+    }
+
+    void OnDisable()
+    {
+        if (weaponManager != null)
+            weaponManager.UnregisterWeapon(this);
+    }
+
+
+
+    // Send firePoint
+    public Transform GetFirePoint()
+    {
+        return firePoint;
     }
 
     
-   
-    
-
-    public void AddUpgrade(WeaponUpgrade upgrade)
-    {
-        if (upgrade.type == UpgradeType.ChangeBulletType)
-        {
-            foreach (var up in activeUpgrades)
-                if (up.type == UpgradeType.ChangeBulletType)
-                    activeUpgrades.Remove(up);
-        }
-        activeUpgrades.Add(upgrade);
-        RecalculateCachedStats();
-    }
-
-
-    float CalculateBulletSpeed()
-    {
-        float speed = weaponType.bulletType.stats.speed;
-        float totalUp = 0f;
-        foreach (var up in activeUpgrades)
-            if (up.type == UpgradeType.BulletSpeedPercent)
-                totalUp *= up.value;
-        return speed * totalUp;
-    }
-
-    float CalculateBulletDamage() 
-    {
-        float damage = weaponType.bulletType.stats.damage;
-        float totalUp = 0f;
-        foreach (var up in activeUpgrades)
-            if (up.type == UpgradeType.DamagePercent)
-                totalUp *= up.value;
-        return damage * totalUp;
-    }
-    float CalculateBulletRange()
-    {
-        float range = weaponType.bulletType.stats.range;
-        float totalUp = 0f;
-        foreach (var up in activeUpgrades)
-            if (up.type == UpgradeType.RangePercent)
-                totalUp *= up.value;
-        return range * totalUp;
-    }
-
-
-    float CalculateFireRate()
-    {
-        float rate = weaponType.fireRate;
-        float totalUp = 0f;
-        foreach (var up in activeUpgrades)
-            if (up.type == UpgradeType.FireRatePercent)
-                totalUp *= up.value;
-        return rate * totalUp;
-    }
-
-
-
-
-    // This BulletType Upgrades Probably will not work.
-    // Will look into how to change it with value in upgrade as index of BulletType.
-    BulletType GetCurrentBulletType()
-    {
-        foreach (var up in activeUpgrades)
-            if (up.type == UpgradeType.ChangeBulletType)
-                return weaponType.bulletType;
-        return weaponType.bulletType;
-    }
-
-
-
-    public BulletStats GetModifiedStats()
-    {
-        BulletStats stats = weaponType.bulletType.stats;
-        foreach (var up in activeUpgrades)
-        {
-            switch (up.type)
-            {
-                case UpgradeType.DamagePercent:
-                    stats.damage = Mathf.RoundToInt(stats.damage * (1 + up.value));
-                    break;
-                case UpgradeType.BulletSpeedPercent:
-                    stats.speed *= 1 + up.value;
-                    break;
-                case UpgradeType.RangePercent:
-                    stats.range *= 1 + up.value;
-                    break;
-            }
-        }
-        return stats;
-    }
 }
