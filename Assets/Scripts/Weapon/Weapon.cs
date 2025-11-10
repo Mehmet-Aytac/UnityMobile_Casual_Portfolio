@@ -1,6 +1,11 @@
 using UnityEngine;
 using UnityEngine.Pool;
 
+
+/// <summary>
+///  Responsible for keeping a firePoint Transform to be used when firing and Registering/unregistering itself in the WeaponManager
+/// </summary>
+
 public class Weapon : MonoBehaviour
 {
     WeaponManager weaponManager;

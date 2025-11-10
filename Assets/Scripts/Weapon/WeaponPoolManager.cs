@@ -2,6 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
+/// <summary>
+/// 
+/// Manages object pools for different Weapon types, allowing efficient spawning and recycling of Weapon instances.
+/// 
+/// </summary>
+
+
 public class WeaponPoolManager : MonoBehaviour
 {
     [System.Serializable]

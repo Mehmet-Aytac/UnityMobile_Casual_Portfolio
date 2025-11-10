@@ -2,6 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
+/// <summary>
+/// 
+/// Manages object pools for different character types, allowing efficient spawning and recycling of character instances.
+/// 
+/// </summary>
 public class CharacterPoolManager : MonoBehaviour
 {
     public List<PoolData> pools;

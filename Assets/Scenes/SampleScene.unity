@@ -1243,7 +1243,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
-  sideBounds: 26
+  sideBounds: 28.5
   topBound: 30
   bottomBound: 0
   characterType: {fileID: 11400000, guid: 64675f035aa792246ab5c166f80ddf73, type: 2}

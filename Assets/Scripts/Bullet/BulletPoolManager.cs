@@ -2,6 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
+/// <summary>
+/// 
+/// Manages object pools for different bullet types, allowing efficient spawning and recycling of bullet instances.
+/// 
+/// </summary>
 public class BulletPoolManager : MonoBehaviour
 {
     [System.Serializable]

@@ -1,33 +1,51 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// 
+/// Bootstrapper class responsible for initializing and registering manager components at the start of the game.
+/// 
+/// </summary>
 public class Bootstrapper : MonoBehaviour
 {
-    [Header("Manager Prefabs (Assign in Assets)")]
+    [Header("Manager Prefabs or Scene Objects")]
     public GameObject[] managerPrefabs;
 
     void Awake()
     {
-        // 1. Instantiate all managers
-        foreach (var prefab in managerPrefabs)
+        foreach (var entry in managerPrefabs)
         {
-            if (prefab == null) continue;
+            if (entry == null) continue;
 
-            GameObject instance = Instantiate(prefab);
-            instance.name = prefab.name; // remove (Clone)
+            // If entry is a Scene object -> register only
+            if (entry.scene.IsValid())
+            {
+                RegisterAll(entry);
+                continue;
+            }
+
+            // If entry is a prefab -> instantiate and register
+            GameObject instance = Instantiate(entry);
+            instance.name = entry.name;
             DontDestroyOnLoad(instance);
 
-            // 2. Register all components in the prefab
-            MonoBehaviour[] components = instance.GetComponents<MonoBehaviour>();
-            foreach (var comp in components)
-            {
-                Type type = comp.GetType();
-                if (!ServiceLocator.TryGet(type, out _))
-                    ServiceLocator.Register(type, comp);
-            }
+            RegisterAll(instance);
         }
 
-        
         ServiceLocator.Get<WeaponPoolManager>().PrewarmPools();
+    }
+
+    void RegisterAll(GameObject obj)
+    {
+        MonoBehaviour[] components = obj.GetComponents<MonoBehaviour>();
+
+        foreach (var comp in components)
+        {
+            Type type = comp.GetType();
+            if (!ServiceLocator.TryGet(type, out _))
+            {
+                ServiceLocator.Register(type, comp);
+            }
+        }
     }
 }

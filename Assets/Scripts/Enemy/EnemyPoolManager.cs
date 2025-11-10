@@ -2,6 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
+/// <summary>
+/// 
+/// Manages object pools for different Enemy types, allowing efficient spawning and recycling of Enemy instances.
+/// 
+/// </summary>
+
+
 public class EnemyPoolManager : MonoBehaviour
 {
     [System.Serializable]

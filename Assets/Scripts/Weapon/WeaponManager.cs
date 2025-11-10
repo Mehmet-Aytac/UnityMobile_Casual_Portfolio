@@ -1,6 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/// <summary>
+/// 
+/// Manages the player's weapons, including firing logic and applying upgrades.
+/// It keeps track of active weapons, calculates bullet stats based on upgrades,
+/// and handles firing bullets at a rate determined by the current fire rate.
+/// 
+/// </summary>
 public class WeaponManager : MonoBehaviour
 {
     BulletSpawner bulletSpawner;
@@ -43,12 +51,9 @@ public class WeaponManager : MonoBehaviour
 
 
 
-
-    // will create a CachedStats that holds all current weapon and bullet stats in memory. 
-    // it will be used when spawning bullets.
-    // it will only updated when something changes.
-    // that way we don't have to calculate updated stats every Shoot() called.
-
+    // CachedStats holds all current weapon and bullet stats to make it easier to recreate them.
+    // This will only updated when something changes.
+    // This way we don't have to calculate updated stats every Shoot() called.
     public struct CachedStats
     {
         public WeaponType weaponType;

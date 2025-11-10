@@ -2,6 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
+
+/// <summary>
+/// 
+/// Manages object pools for different Collectable types, allowing efficient spawning and recycling of Collectable instances.
+/// 
+/// </summary>
+
+
 public class CollectablePoolManager : MonoBehaviour
 {
     [System.Serializable]
