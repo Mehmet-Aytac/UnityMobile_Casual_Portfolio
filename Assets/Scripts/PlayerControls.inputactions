@@ -14,6 +14,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "TestAddKey",
+                    "type": "Button",
+                    "id": "0b1a0f0a-42bb-42c5-8981-032b23871560",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TestRemoveKey",
+                    "type": "Button",
+                    "id": "785625fe-7fa4-495a-9696-0e0803202856",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -181,6 +199,28 @@
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "7256aa44-3369-4265-b095-7f492f42bd66",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestAddKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9ab535f1-57b7-46f4-bf17-27b301dd8b2b",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestRemoveKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

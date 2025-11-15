@@ -2,11 +2,14 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public EnemyPoolManager poolManager;
+    EnemyPoolManager poolManager;
     public EnemyType[] enemyTypes;
 
+  
     void Start()
     {
+        poolManager = ServiceLocator.Get<EnemyPoolManager>();
+
         if (enemyTypes == null || enemyTypes.Length == 0)
         {
             Debug.LogError("EnemySpawner: enemyTypes array is empty!");
@@ -22,4 +25,6 @@ public class EnemySpawner : MonoBehaviour
         }
         
     }
+
+    
 }

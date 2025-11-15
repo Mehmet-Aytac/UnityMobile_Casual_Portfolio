@@ -4,6 +4,6 @@ using UnityEngine;
 public struct BulletStats
 {
     public float speed;
-    public int damage;
+    public float damage;
     public float range;
 }
