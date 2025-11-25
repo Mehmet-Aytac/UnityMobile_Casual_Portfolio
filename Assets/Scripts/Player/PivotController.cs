@@ -11,11 +11,9 @@ public class PivotController : MonoBehaviour
 {
     public float speed = 5f;
     public float sideBounds = 28.0f;
-    public float topBound = 15.0f;
     public float bottomBound = 2.0f;
 
     private float halfWidthOfFormation;
-    private float halfLengthOfFormation;
 
 
 
@@ -51,7 +49,6 @@ public class PivotController : MonoBehaviour
     private void UpdateClamp(float width, float length)
     {
         halfWidthOfFormation = width;
-        halfLengthOfFormation = length;
     }
 
 
@@ -62,21 +59,42 @@ public class PivotController : MonoBehaviour
 
 
 
-    /// FOR TESTING PURPOSES ONLY
+ // FOR TESTING PURPOSES ONLY
     public CharacterType characterType;
 
-    // END FOR TESTING PURPOSES ONLY
+ // END FOR TESTING PURPOSES ONLY
 
     void Update()
     {
-        // FOR TESTING PURPOSES ONLY
+ // FOR TESTING PURPOSES ONLY
         if (playerInput.actions["TestAddKey"].triggered)
         {
             var posSpawn = new Vector3(0, 3.1f, 0);
             var go = characterSpawner.SpawnCharacterOfType(characterType, posSpawn);
-            Character c = go.GetComponent<Character>();
-            characterGroupManager.AddCharacter(c);
-            weaponManager.RegisterWeapon(c.currentWeapon);
+            if (go != null)
+            {
+                Character c = go.GetComponent<Character>();
+                characterGroupManager.AddCharacter(c);
+                weaponManager.RegisterWeapon(c.currentWeapon);
+            }
+            else Debug.Log("Spawned Character reference is empty. Did max capacity is reached?");
+        }
+
+        if (playerInput.actions["TestAddAllKey"].triggered)
+        {
+            var posSpawn = new Vector3(0, 3.1f, 0);
+            for (int i = 0; i < 210; i++)
+            {
+                var go = characterSpawner.SpawnCharacterOfType(characterType, posSpawn);
+                if (go != null)
+                {
+                    Character c = go.GetComponent<Character>();
+                    characterGroupManager.AddCharacter(c);
+                    weaponManager.RegisterWeapon(c.currentWeapon);
+                }
+                else Debug.Log("Spawned Character reference is empty. Did max capacity is reached?");
+            }
+            
         }
 
         if (playerInput.actions["TestRemoveKey"].triggered)
@@ -86,18 +104,31 @@ public class PivotController : MonoBehaviour
             randomCharacter.Die();
         }
 
-        // END FOR TESTING PURPOSES ONLY
+
+        if (playerInput.actions["SquareFormation"].triggered)
+        {
+            characterGroupManager.SetFormationShape(CharacterGroupManager.FormationShape.Square);
+        }
+        if (playerInput.actions["HorizontalFormation"].triggered)
+        {
+            characterGroupManager.SetFormationShape(CharacterGroupManager.FormationShape.Horizontal);
+        }
+        if (playerInput.actions["VerticalFormation"].triggered)
+        {
+            characterGroupManager.SetFormationShape(CharacterGroupManager.FormationShape.Vertical);
+        }
+
+ // END FOR TESTING PURPOSES ONLY
 
 
 
         moveInput = playerInput.actions["Move"].ReadValue<Vector2>();
 
-        Vector3 move = new Vector3(moveInput.x, 0, moveInput.y) * speed * Time.deltaTime;
+        Vector3 move = new Vector3(moveInput.x, 0, 0) * speed * Time.deltaTime;
 
         transform.position += move;
         Vector3 pos = transform.position;
         pos.x = Mathf.Clamp(pos.x, -sideBounds + halfWidthOfFormation, sideBounds - halfWidthOfFormation);
-        pos.z = Mathf.Clamp(pos.z, bottomBound + halfLengthOfFormation, topBound - halfLengthOfFormation);
         transform.position = pos;
     }
 

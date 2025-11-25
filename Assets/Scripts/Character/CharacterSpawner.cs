@@ -19,7 +19,7 @@ public class CharacterSpawner : MonoBehaviour
 
         // Example: spawn random type
         var randomType = characterTypes[Random.Range(0, characterTypes.Length)];
-        poolManager.SpawnCharacter(randomType, new Vector3(0f, 0f, 0f));
+        SpawnCharacterOfType(randomType, new Vector3(0f, 0f, 0f));
     }
 
     public Character SpawnCharacterOfType(CharacterType type, Vector3 position)

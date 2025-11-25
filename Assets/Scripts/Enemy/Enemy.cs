@@ -35,7 +35,7 @@ public class Enemy : MonoBehaviour
         transform.Translate(type.stats.speed * Time.deltaTime * Vector3.forward);
 
         // Check if the enemy has exceeded its range(preset z value in this case) then return it to the pool
-        if (transform.position.z <= type.stats.range)
+        if (transform.position.z <= -40)
         {
             pool.Release(this);
         }

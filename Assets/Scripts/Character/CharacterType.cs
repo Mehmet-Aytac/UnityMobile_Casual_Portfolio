@@ -4,6 +4,8 @@ using UnityEngine;
 public class CharacterType : ScriptableObject
 {
     public string id;
+    public float verticalSize;
+    public float horizontalSize;
     public Vector3 weaponSocket;
     public GameObject prefab;
 

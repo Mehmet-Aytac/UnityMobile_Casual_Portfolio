@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 0
   stats:
-    speed: 20
+    speed: 50
     damage: 5
     range: 100
   prefab: {fileID: 9068925094122925304, guid: 07f837ecabc8a144bb50f937fcb55d4f, type: 3}

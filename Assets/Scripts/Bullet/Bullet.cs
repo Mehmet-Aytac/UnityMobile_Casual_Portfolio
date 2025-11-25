@@ -33,10 +33,10 @@ public class Bullet : MonoBehaviour
     }
 
 
-    void FixedUpdate()
+    void Update()
     {
         // Move the bullet forward
-        transform.position += velocity * Time.fixedDeltaTime;
+        transform.position += velocity * Time.deltaTime;
 
         // Check if the bullet has exceeded its range then return it to the pool
         if ((transform.position - bulletSpawnLoc).sqrMagnitude >= type.stats.range * type.stats.range)

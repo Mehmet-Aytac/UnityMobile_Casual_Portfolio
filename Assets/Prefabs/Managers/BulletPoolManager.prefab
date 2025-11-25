@@ -46,5 +46,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pools:
   - bulletType: {fileID: 11400000, guid: 753d39628da94d041879e79d9e0ad4cc, type: 2}
-    defaultCapacity: 1000
-    maxSize: 3000
+    defaultCapacity: 2000
+    maxSize: 25000

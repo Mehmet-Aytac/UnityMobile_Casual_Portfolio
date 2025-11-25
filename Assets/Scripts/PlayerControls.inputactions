@@ -25,9 +25,45 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "TestAddAllKey",
+                    "type": "Button",
+                    "id": "3bb20a74-5840-443d-9e7e-911240419a27",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "TestRemoveKey",
                     "type": "Button",
                     "id": "785625fe-7fa4-495a-9696-0e0803202856",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SquareFormation",
+                    "type": "Button",
+                    "id": "078dd710-ac8b-48e9-8bfa-a1014bc813e8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "HorizontalFormation",
+                    "type": "Button",
+                    "id": "a7e5e3f0-cae7-4ecc-a117-22cc810d29fa",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "VerticalFormation",
+                    "type": "Button",
+                    "id": "27032073-5a72-42e7-a834-1b3ac6919a83",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -219,6 +255,50 @@
                     "processors": "",
                     "groups": "",
                     "action": "TestRemoveKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "57c858ae-f015-4d1b-9c1e-bc430cfe9026",
+                    "path": "<Keyboard>/j",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SquareFormation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4b5f3955-bb40-4eac-b1e4-3322ef345748",
+                    "path": "<Keyboard>/k",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HorizontalFormation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "94e813bc-e3ad-4c15-93c5-298f5cca8a2e",
+                    "path": "<Keyboard>/l",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "VerticalFormation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ec781b88-0d25-4a3b-857e-7c7d48fe4363",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestAddAllKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

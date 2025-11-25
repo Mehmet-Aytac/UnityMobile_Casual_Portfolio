@@ -451,7 +451,6 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
-  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -498,7 +497,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.03
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -527,7 +526,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
-  m_LocalPosition: {x: 0, y: 50, z: -26.7}
+  m_LocalPosition: {x: 0, y: 100, z: -70}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -577,20 +576,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &330585548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d559dcf6ef0f7fa4ebf83b014c5428e3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  minHorizontalPosition: -16
-  maxHorizontalPosition: 16
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1224,7 +1209,7 @@ Transform:
   m_GameObject: {fileID: 1083034895}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: 5}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1244,7 +1229,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   sideBounds: 28.5
-  topBound: 30
   bottomBound: 0
   characterType: {fileID: 11400000, guid: 64675f035aa792246ab5c166f80ddf73, type: 2}
 --- !u!114 &1083034898
@@ -1450,7 +1434,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d278c200874b9f24d91086964857df40, type: 2}
+  - {fileID: 2100000, guid: 260f71462dff6a54a8a28504c8103be2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2025,6 +2009,14 @@ PrefabInstance:
       propertyPath: pivot
       value: 
       objectReference: {fileID: 1083034896}
+    - target: {fileID: 5191255049725613165, guid: 696bc6f9fc867af41a606ea2e3059378, type: 3}
+      propertyPath: MaxCols
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5191255049725613165, guid: 696bc6f9fc867af41a606ea2e3059378, type: 3}
+      propertyPath: MaxRows
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 5191255049725613165, guid: 696bc6f9fc867af41a606ea2e3059378, type: 3}
       propertyPath: characters.Array.size
       value: 0

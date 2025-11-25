@@ -55,12 +55,11 @@ public class CharacterPoolManager : MonoBehaviour
     void OnCharacterGet(Character c)
     {
         c.gameObject.SetActive(true);
-        groupManager?.AddCharacter(c);
     }
 
     void OnCharacterRelease(Character c)
     {
-        groupManager?.RemoveCharacter(c);
+        groupManager.RemoveCharacter(c);
         c.ResetState();
         c.gameObject.SetActive(false);
     }
@@ -81,12 +80,22 @@ public class CharacterPoolManager : MonoBehaviour
     public Character SpawnCharacter(CharacterType characterType, Vector3 pos)
     {
         if (!poolDict.TryGetValue(characterType.idHash, out var pool)) return null;
-        Character c = pool.Get();
-        c.Initialize(characterType, pos);
-        Transform parent = GetOrCreateGroup(SceneOrganizer.characterRoot, characterType.id);
-        c.transform.SetParent(parent, false);
-        return c;
+        
+        else if (groupManager.MaxRows * groupManager.MaxCols > groupManager.characters.Count)
+        {
+            Character c = pool.Get();
+            c.Initialize(characterType, pos);
+            Transform parent = GetOrCreateGroup(SceneOrganizer.characterRoot, characterType.id);
+            groupManager.AddCharacter(c);
+            c.transform.SetParent(parent, false);
+            return c;
+        }
 
+        else
+        {
+            Debug.Log("CharacterSpawn is unsuccessfull! Character limit is reached.");
+            return null;
+        }
     }
 
 

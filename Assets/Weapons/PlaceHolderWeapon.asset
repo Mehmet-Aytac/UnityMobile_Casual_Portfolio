@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: PlaceHolderWeapon
   m_EditorClassIdentifier: 
   id: 0
-  fireRate: 1
+  fireRate: 10
   bulletType: {fileID: 11400000, guid: 753d39628da94d041879e79d9e0ad4cc, type: 2}
   prefab: {fileID: 2595700638231294708, guid: b802fd252ae9c734684446f8169d4350, type: 3}
+  idHash: -186917087
