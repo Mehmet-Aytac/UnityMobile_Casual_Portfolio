@@ -151,7 +151,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   moveSpeed: 20
   currentWeapon: {fileID: 0}
-  type: {fileID: 0}
+  type: {fileID: 11400000, guid: 64675f035aa792246ab5c166f80ddf73, type: 2}
 --- !u!1 &8352530584026056383
 GameObject:
   m_ObjectHideFlags: 0

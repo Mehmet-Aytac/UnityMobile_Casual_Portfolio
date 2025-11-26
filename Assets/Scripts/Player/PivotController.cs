@@ -12,15 +12,14 @@ public class PivotController : MonoBehaviour
     public float speed = 5f;
     public float sideBounds = 28.0f;
     public float bottomBound = 2.0f;
+    public Vector3 posSpawn = new(0, 3.1f, 0);
+
 
     private float halfWidthOfFormation;
 
 
-
-    WeaponManager weaponManager;
     CharacterGroupManager characterGroupManager;
     CharacterSpawner characterSpawner;
-
 
     Vector2 moveInput;
     PlayerInput playerInput;
@@ -29,7 +28,6 @@ public class PivotController : MonoBehaviour
 
     void Start()
     {
-        weaponManager = ServiceLocator.Get<WeaponManager>();
         characterGroupManager = ServiceLocator.Get<CharacterGroupManager>();
         characterSpawner = ServiceLocator.Get<CharacterSpawner>();
         characterGroupManager.OnFormationSizeChanged += UpdateClamp;
@@ -67,40 +65,28 @@ public class PivotController : MonoBehaviour
     void Update()
     {
  // FOR TESTING PURPOSES ONLY
+
         if (playerInput.actions["TestAddKey"].triggered)
         {
-            var posSpawn = new Vector3(0, 3.1f, 0);
-            var go = characterSpawner.SpawnCharacterOfType(characterType, posSpawn);
-            if (go != null)
-            {
-                Character c = go.GetComponent<Character>();
-                characterGroupManager.AddCharacter(c);
-                weaponManager.RegisterWeapon(c.currentWeapon);
-            }
-            else Debug.Log("Spawned Character reference is empty. Did max capacity is reached?");
+            characterSpawner.SpawnCharacterOfType(characterType, posSpawn);
         }
+
 
         if (playerInput.actions["TestAddAllKey"].triggered)
         {
-            var posSpawn = new Vector3(0, 3.1f, 0);
-            for (int i = 0; i < 210; i++)
+            int maxRows = characterGroupManager.MaxRows;
+            int maxCols = characterGroupManager.MaxCols;
+
+            for (int i = 0; i < maxRows*maxCols; i++)
             {
-                var go = characterSpawner.SpawnCharacterOfType(characterType, posSpawn);
-                if (go != null)
-                {
-                    Character c = go.GetComponent<Character>();
-                    characterGroupManager.AddCharacter(c);
-                    weaponManager.RegisterWeapon(c.currentWeapon);
-                }
-                else Debug.Log("Spawned Character reference is empty. Did max capacity is reached?");
+                characterSpawner.SpawnCharacterOfType(characterType, posSpawn);
             }
-            
         }
+
 
         if (playerInput.actions["TestRemoveKey"].triggered)
         {
             Character randomCharacter = characterGroupManager.characters[Random.Range(0, characterGroupManager.characters.Count)];
-            characterGroupManager.RemoveCharacter(randomCharacter);
             randomCharacter.Die();
         }
 

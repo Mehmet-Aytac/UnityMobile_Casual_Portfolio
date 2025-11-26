@@ -13,8 +13,8 @@ public class CharacterPoolManager : MonoBehaviour
 
     private Dictionary<int, ObjectPool<Character>> poolDict = new();
 
-    CharacterGroupManager groupManager;
-
+    WeaponManager weaponManager;
+    CharacterGroupManager characterGroupManager;
 
     [System.Serializable]
     public class PoolData
@@ -27,7 +27,8 @@ public class CharacterPoolManager : MonoBehaviour
 
     private void Start()
     {
-        groupManager = ServiceLocator.Get<CharacterGroupManager>();
+        weaponManager = ServiceLocator.Get<WeaponManager>();
+        characterGroupManager = ServiceLocator.Get<CharacterGroupManager>();
         foreach (var data in pools)
         {
             ObjectPool<Character> pool = new ObjectPool<Character>(
@@ -59,9 +60,10 @@ public class CharacterPoolManager : MonoBehaviour
 
     void OnCharacterRelease(Character c)
     {
-        groupManager.RemoveCharacter(c);
+        characterGroupManager.RemoveCharacter(c);
         c.ResetState();
         c.gameObject.SetActive(false);
+        characterGroupManager.RemoveCharacter(c);
     }
 
     Character CreateCharacter(PoolData data)
@@ -81,12 +83,13 @@ public class CharacterPoolManager : MonoBehaviour
     {
         if (!poolDict.TryGetValue(characterType.idHash, out var pool)) return null;
         
-        else if (groupManager.MaxRows * groupManager.MaxCols > groupManager.characters.Count)
+        else if (characterGroupManager.MaxRows * characterGroupManager.MaxCols > characterGroupManager.characters.Count)
         {
             Character c = pool.Get();
             c.Initialize(characterType, pos);
             Transform parent = GetOrCreateGroup(SceneOrganizer.characterRoot, characterType.id);
-            groupManager.AddCharacter(c);
+            characterGroupManager.AddCharacter(c);
+            weaponManager.RegisterWeapon(c.currentWeapon);
             c.transform.SetParent(parent, false);
             return c;
         }
@@ -96,6 +99,21 @@ public class CharacterPoolManager : MonoBehaviour
             Debug.Log("CharacterSpawn is unsuccessfull! Character limit is reached.");
             return null;
         }
+    }
+
+    public void ReleaseCharacter(Character character)
+    {
+        if (character == null) return;
+
+        int hash = character.type.idHash;
+
+        if (!poolDict.TryGetValue(hash, out var pool))
+        {
+            Debug.LogError($"No pool found for type: {character.type.id}");
+            return;
+        }
+
+        pool.Release(character);
     }
 
 

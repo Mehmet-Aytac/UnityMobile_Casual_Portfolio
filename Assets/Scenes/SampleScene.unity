@@ -1230,6 +1230,7 @@ MonoBehaviour:
   speed: 10
   sideBounds: 28.5
   bottomBound: 0
+  posSpawn: {x: 0, y: 3.1, z: 0}
   characterType: {fileID: 11400000, guid: 64675f035aa792246ab5c166f80ddf73, type: 2}
 --- !u!114 &1083034898
 MonoBehaviour:
@@ -2017,6 +2018,10 @@ PrefabInstance:
       propertyPath: MaxRows
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 5191255049725613165, guid: 696bc6f9fc867af41a606ea2e3059378, type: 3}
+      propertyPath: activeCharacterType
+      value: 
+      objectReference: {fileID: 11400000, guid: 64675f035aa792246ab5c166f80ddf73, type: 2}
     - target: {fileID: 5191255049725613165, guid: 696bc6f9fc867af41a606ea2e3059378, type: 3}
       propertyPath: characters.Array.size
       value: 0

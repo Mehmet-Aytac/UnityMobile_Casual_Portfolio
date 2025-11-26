@@ -1,8 +1,11 @@
+using System.Net;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CharacterSpawner : MonoBehaviour
 {
     CharacterPoolManager poolManager;
+    
     public CharacterType[] characterTypes;
 
 
@@ -25,7 +28,18 @@ public class CharacterSpawner : MonoBehaviour
     public Character SpawnCharacterOfType(CharacterType type, Vector3 position)
     {
         Character c = poolManager.SpawnCharacter(type, position);
+        if (c == null) 
+        { 
+            Debug.Log("Spawned Character reference is empty. Did max capacity is reached?");
+        }
+
         return c;
+    }
+
+    public void ReleaseCharacter(Character c) 
+    {
+        if (c == null) return;
+        poolManager.ReleaseCharacter(c);
     }
 
 }

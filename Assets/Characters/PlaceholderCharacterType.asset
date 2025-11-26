@@ -13,5 +13,8 @@ MonoBehaviour:
   m_Name: PlaceholderCharacterType
   m_EditorClassIdentifier: 
   id: PlaceholderCharacter
+  verticalSize: 2.1
+  horizontalSize: 2.1
   weaponSocket: {x: 1.4, y: 4, z: 1.25}
   prefab: {fileID: 4189131155766322045, guid: 8dcdfac92dd31eb4dabeaacaf4f6743c, type: 3}
+  idHash: -166791232
