@@ -1,6 +1,5 @@
 [System.Serializable]
 
-
 public struct UpgradeData
 {
     public UpgradeType type;

@@ -12,8 +12,8 @@ public class CharacterGroupManager : MonoBehaviour
 {
     [Header("Character Settings")]
     [SerializeField] private CharacterType activeCharacterType;
-    private float sizeX; // horizontalSize
-    private float sizeZ; // verticalSize
+    private float sizeX = 2.1f; // horizontalSize
+    private float sizeZ = 2.1f; // verticalSize
     public List<Character> characters = new List<Character>(); // All active characters in group
     public Transform pivot; // Invisible pivot used for input-based movement
     public float formationSpacing = 3f; // Distance between characters
@@ -58,24 +58,10 @@ public class CharacterGroupManager : MonoBehaviour
 
     // formation mode
     [SerializeField] private FormationShape selectedShape = FormationShape.Square;
-    public enum FormationShape { Square, Horizontal, Vertical }
 
     void Start()
     {
         characterSpawner = ServiceLocator.Get<CharacterSpawner>();
-
-        // initialize sizes from activeCharacterType to avoid zero-size math
-        if (activeCharacterType != null)
-        {
-            sizeX = activeCharacterType.horizontalSize;
-            sizeZ = activeCharacterType.verticalSize;
-        }
-        else
-        {
-            // sensible defaults if asset not assigned
-            sizeX = Mathf.Max(0.1f, sizeX);
-            sizeZ = Mathf.Max(0.1f, sizeZ);
-        }
 
         CacheAllFormationData();
         UpdateFormationShape();
@@ -165,7 +151,7 @@ public class CharacterGroupManager : MonoBehaviour
 
 
     [System.Serializable]
-    public struct PlayerFormationData
+    public struct CachedFormationLayout
     {
         public int maxRows;
         public int maxColumns;
@@ -179,7 +165,221 @@ public class CharacterGroupManager : MonoBehaviour
         public List<float> rowDepth; // distance of each row from pivot
     }
 
-    public Dictionary<FormationShape, PlayerFormationData> cachedFormations = new Dictionary<FormationShape, PlayerFormationData>();
+    public Dictionary<FormationShape, CachedFormationLayout> cachedFormations = new Dictionary<FormationShape, CachedFormationLayout>();
+
+
+    // -----------------------
+    // Struct for FormationCalculation return
+    // -----------------------
+
+    public struct FormationCalculator
+    {
+        public int maxRows;
+        public int maxCols;
+        public int rows;
+        public int cols;
+        public int[] perRow;
+        public int[] perCol;
+        public Vector3[] positions;
+        public List<float> rowDepth;
+        public FormationCalculator(int maxRowsR, int maxColsR, int rowsR, int colsR, int[] perRowR, int[] perColR, Vector3[] positionsR, List<float> rowDepthR)
+        {
+            maxRows = maxRowsR;
+            maxCols = maxColsR;
+            rows = rowsR;
+            cols = colsR;
+            perRow = perRowR;
+            perCol = perColR;
+            positions = positionsR;
+            rowDepth = rowDepthR;
+        }
+    }
+
+    // -----------------------
+    // Method to calculate formaiton values (Square)
+    // -----------------------
+    private FormationCalculator SquareFormationCreator(int count, CharacterType type)
+    {
+        int maxRows = 15;
+        int maxCols = 14;
+        int rowsLocal = 1;
+        int colsLocal = 1;
+
+
+        // -----------------------
+        // COMPUTE rows & columns
+        // -----------------------
+        rowsLocal = Mathf.Max(1, Mathf.Min(maxRows, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count)))));
+        colsLocal = Mathf.Max(1, Mathf.Min(maxCols, Mathf.CeilToInt((float)count / rowsLocal)));
+
+        int[] perRow = new int[rowsLocal];
+        int[] perCol = new int[colsLocal];
+        Vector3[] positions = new Vector3[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            int row = Mathf.Clamp(i % rowsLocal, 0, rowsLocal - 1);
+            int col = Mathf.Clamp(i / rowsLocal, 0, colsLocal - 1);
+
+            perRow[row]++;
+            perCol[col]++;
+
+            float x = (col - (colsLocal - 1) / 2f) * type.horizontalSize;
+            float z = (row - (rowsLocal - 1) / 2f) * type.verticalSize;
+
+            positions[i] = new Vector3(x, 0f, -z);
+        }
+
+        // -----------------------
+        // COMPUTE rowDepth (vertical distances)
+        // -----------------------
+        List<float> rowDepthLocal = new List<float>();
+        float centerRow = (rowsLocal - 1) * 0.5f;
+
+        for (int r = 0; r < rowsLocal; r++)
+        {
+            float value = (centerRow - r) * type.verticalSize; // use vertical spacing (verticalSize)
+            rowDepthLocal.Add(value);
+        }
+
+
+        return new FormationCalculator(maxRows, maxCols, rowsLocal, colsLocal, perRow, perCol, positions, rowDepthLocal);
+    }
+
+
+    // -----------------------
+    // Method to calculate formaiton values (Horizontal)
+    // -----------------------
+    private FormationCalculator HorizontalFormationCreator(int count, CharacterType type)
+    {
+        int maxRows = 10;
+        int maxCols = 21;
+
+        // -----------------------
+        // COMPUTE rows & columns
+        // -----------------------
+
+        int idealRows = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count / 2f))));
+        int idealCols = Mathf.Max(1, idealRows * 2);
+        int rowsLocal = 1;
+        int colsLocal = 1;
+
+        rowsLocal = Mathf.Min(idealRows, maxRows);
+        colsLocal = Mathf.Min(idealCols, maxCols);
+
+        // safety iteration guard: only iterate up to maxR steps
+        int safety = 0;
+        while (rowsLocal < maxRows && rowsLocal * colsLocal < count && safety < maxRows + 5)
+        {
+            rowsLocal++;
+            colsLocal = Mathf.Min(rowsLocal * 2, maxCols);
+            safety++;
+        }
+        // final clamps
+        rowsLocal = Mathf.Clamp(rowsLocal, 1, maxRows);
+        colsLocal = Mathf.Clamp(colsLocal, 1, maxCols);
+
+        int[] perRow = new int[rowsLocal];
+        int[] perCol = new int[colsLocal];
+        Vector3[] positions = new Vector3[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            int col = Mathf.Clamp(i % colsLocal, 0, colsLocal - 1);
+            int row = Mathf.Clamp(i / colsLocal, 0, rowsLocal - 1);
+
+            perRow[row]++;
+            perCol[col]++;
+
+            float x = (col - (colsLocal - 1) / 2f) * type.horizontalSize;
+            float z = (row - (rowsLocal - 1) / 2f) * type.verticalSize;
+
+            positions[i] = new Vector3(x, 0f, -z);
+        }
+
+        // -----------------------
+        // COMPUTE rowDepth (vertical distances)
+        // -----------------------
+        List<float> rowDepthLocal = new List<float>();
+        float centerRow = (rowsLocal - 1) * 0.5f;
+
+        for (int r = 0; r < rowsLocal; r++)
+        {
+            float value = (centerRow - r) * type.verticalSize; // use vertical spacing (verticalSize)
+            rowDepthLocal.Add(value);
+        }
+
+        return new FormationCalculator(maxRows, maxCols, rowsLocal, colsLocal, perRow, perCol, positions, rowDepthLocal);
+    }
+
+
+    // -----------------------
+    // Method to calculate formaiton values (Vertical)
+    // -----------------------
+    private FormationCalculator VerticalFormationCreator(int count, CharacterType type)
+    {
+        int maxRows = 21;
+        int maxCols = 10;
+
+        // -----------------------
+        // COMPUTE rows & columns
+        // -----------------------
+
+        int idealCols = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count / 2f))));
+        int idealRows = Mathf.Max(1, idealCols * 2);
+
+        int rowsLocal = 1;
+        int colsLocal = 1;
+
+
+        rowsLocal = Mathf.Min(idealRows, maxRows);
+        colsLocal = Mathf.Min(idealCols, maxCols);
+
+        int safety = 0;
+        while (colsLocal < maxCols && rowsLocal * colsLocal < count && safety < maxCols + 5)
+        {
+            colsLocal++;
+            rowsLocal = Mathf.Min(rowsLocal * 2, maxRows);
+            safety++;
+        }
+
+        rowsLocal = Mathf.Clamp(rowsLocal, 1, maxRows);
+        colsLocal = Mathf.Clamp(colsLocal, 1, maxCols);
+
+        int[] perRow = new int[rowsLocal];
+        int[] perCol = new int[colsLocal];
+        Vector3[] positions = new Vector3[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            int row = Mathf.Clamp(i % rowsLocal, 0, rowsLocal - 1);
+            int col = Mathf.Clamp(i / rowsLocal, 0, colsLocal - 1);
+
+            perRow[row]++;
+            perCol[col]++;
+
+            float x = (col - (colsLocal - 1) / 2f) * type.horizontalSize;
+            float z = (row - (rowsLocal - 1) / 2f) * type.verticalSize;
+
+            positions[i] = new Vector3(x, 0f, -z);
+        }
+
+        // -----------------------
+        // COMPUTE rowDepth (vertical distances)
+        // -----------------------
+        List<float> rowDepthLocal = new List<float>();
+        float centerRow = (rowsLocal - 1) * 0.5f;
+
+        for (int r = 0; r < rowsLocal; r++)
+        {
+            float value = (centerRow - r) * type.verticalSize; // use vertical spacing (verticalSize)
+            rowDepthLocal.Add(value);
+        }
+
+
+        return new FormationCalculator(maxRows, maxCols, rowsLocal, colsLocal, perRow, perCol, positions, rowDepthLocal);
+    }
+
 
 
     /// <summary>
@@ -190,153 +390,46 @@ public class CharacterGroupManager : MonoBehaviour
     private void CacheAllFormationData()
     {
         cachedFormations.Clear();
-        int count = Mathf.Max(0, characters.Count);
+        int count = Mathf.Max(0, characters.Count); // safeGet
 
         foreach (FormationShape shape in Enum.GetValues(typeof(FormationShape)))
         {
-            PlayerFormationData data = new PlayerFormationData();
+            CachedFormationLayout data = new CachedFormationLayout();
 
-            // -----------------------
-            // COMPUTE rows & columns
-            // -----------------------
-            int rowsLocal = 1;
-            int colsLocal = 1;
-
-            int maxR = 1;
-            int maxC = 1;
+            
+           
+            FormationCalculator formation = new FormationCalculator();
 
             if (shape == FormationShape.Square)
             {
-                maxR = 15;
-                maxC = 14;
-                rowsLocal = Mathf.Max(1, Mathf.Min(maxR, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count)))));
-                colsLocal = Mathf.Max(1, Mathf.Min(maxC, Mathf.CeilToInt((float)count / rowsLocal)));
+                formation = SquareFormationCreator(count, activeCharacterType);
             }
             else if (shape == FormationShape.Horizontal)
             {
-                maxR = 10;
-                maxC = 21;
-
-                int idealRows = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count / 2f))));
-                int idealCols = Mathf.Max(1, idealRows * 2);
-
-                rowsLocal = Mathf.Min(idealRows, maxR);
-                colsLocal = Mathf.Min(idealCols, maxC);
-
-                // safety iteration guard: only iterate up to maxR steps
-                int safety = 0;
-                while (rowsLocal < maxR && rowsLocal * colsLocal < count && safety < maxR + 5)
-                {
-                    rowsLocal++;
-                    colsLocal = Mathf.Min(rowsLocal * 2, maxC);
-                    safety++;
-                }
-                // final clamps
-                rowsLocal = Mathf.Clamp(rowsLocal, 1, maxR);
-                colsLocal = Mathf.Clamp(colsLocal, 1, maxC);
+                formation = HorizontalFormationCreator(count, activeCharacterType);
             }
             else if (shape == FormationShape.Vertical)
             {
-                maxR = 21;
-                maxC = 10;
-
-                int idealCols = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, count / 2f))));
-                int idealRows = Mathf.Max(1, idealCols * 2);
-
-                rowsLocal = Mathf.Min(idealRows, maxR);
-                colsLocal = Mathf.Min(idealCols, maxC);
-
-                int safety = 0;
-                while (colsLocal < maxC && rowsLocal * colsLocal < count && safety < maxC + 5)
-                {
-                    colsLocal++;
-                    rowsLocal = Mathf.Min(rowsLocal * 2, maxR);
-                    safety++;
-                }
-
-                rowsLocal = Mathf.Clamp(rowsLocal, 1, maxR);
-                colsLocal = Mathf.Clamp(colsLocal, 1, maxC);
-            }
-            else
-            {
-                // fallback
-                rowsLocal = 1;
-                colsLocal = Mathf.Max(1, count);
-                maxR = rowsLocal;
-                maxC = colsLocal;
+                formation = VerticalFormationCreator(count, activeCharacterType);
             }
 
             // -----------------------
-            // PREP arrays (safe sizes)
+            // Set the variables for the "shape"
             // -----------------------
-            rowsLocal = Mathf.Max(1, rowsLocal);
-            colsLocal = Mathf.Max(1, colsLocal);
-
-            int[] perRow = new int[rowsLocal];
-            int[] perCol = new int[colsLocal];
-            Vector3[] positions = new Vector3[count];
-
-            // -----------------------
-            // FILL character grid
-            // -----------------------
-            if (shape == FormationShape.Horizontal) // row-major
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    int col = Mathf.Clamp(i % colsLocal, 0, colsLocal - 1);
-                    int row = Mathf.Clamp(i / colsLocal, 0, rowsLocal - 1);
-
-                    perRow[row]++;
-                    perCol[col]++;
-
-                    float x = (col - (colsLocal - 1) / 2f) * sizeX;
-                    float z = (row - (rowsLocal - 1) / 2f) * sizeZ;
-
-                    positions[i] = new Vector3(x, 0f, -z);
-                }
-            }
-            else // Square or Vertical -> column-major
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    int row = Mathf.Clamp(i % rowsLocal, 0, rowsLocal - 1);
-                    int col = Mathf.Clamp(i / rowsLocal, 0, colsLocal - 1);
-
-                    perRow[row]++;
-                    perCol[col]++;
-
-                    float x = (col - (colsLocal - 1) / 2f) * sizeX;
-                    float z = (row - (rowsLocal - 1) / 2f) * sizeZ;
-
-                    positions[i] = new Vector3(x, 0f, -z);
-                }
-            }
+            data.maxRows = formation.maxRows;
+            data.maxColumns = formation.maxCols;
+            data.rows = formation.rows;
+            data.columns = formation.cols;
+            data.halfWidth = (formation.cols - 1) * sizeX * 0.5f;
+            data.halfLength = (formation.rows - 1) * sizeZ * 0.5f;
+            data.charactersPerRow = formation.perRow;
+            data.charactersPerColumn = formation.perCol;
+            data.formationPositions = formation.positions;
+            data.rowDepth = formation.rowDepth;
 
             // -----------------------
-            // COMPUTE rowDepth (vertical distances)
+            // Save all data to cache with the "shape"
             // -----------------------
-            List<float> rowDepthLocal = new List<float>();
-            float centerRow = (rowsLocal - 1) * 0.5f;
-
-            for (int r = 0; r < rowsLocal; r++)
-            {
-                float value = (centerRow - r) * sizeZ; // use vertical spacing (sizeZ)
-                rowDepthLocal.Add(value);
-            }
-
-            // -----------------------
-            // SAVE DATA
-            // -----------------------
-            data.maxRows = maxR;
-            data.maxColumns = maxC;
-            data.rows = rowsLocal;
-            data.columns = colsLocal;
-            data.halfWidth = (colsLocal - 1) * sizeX * 0.5f;
-            data.halfLength = (rowsLocal - 1) * sizeZ * 0.5f;
-            data.charactersPerRow = perRow;
-            data.charactersPerColumn = perCol;
-            data.formationPositions = positions;
-            data.rowDepth = rowDepthLocal;
             cachedFormations[shape] = data;
         }
 
@@ -354,7 +447,7 @@ public class CharacterGroupManager : MonoBehaviour
     /// </summary>
     private void UpdateFormationShape()
     {
-        PlayerFormationData data = GetFormationData(selectedShape);
+        CachedFormationLayout data = GetFormationData(selectedShape);
 
         rows = data.rows;
         columns = data.columns;
@@ -377,11 +470,11 @@ public class CharacterGroupManager : MonoBehaviour
     }
 
 
-    public PlayerFormationData GetFormationData(FormationShape shape)
+    public CachedFormationLayout GetFormationData(FormationShape shape)
     {
         if (cachedFormations.TryGetValue(shape, out var data))
             return data;
-        return new PlayerFormationData();
+        return new CachedFormationLayout();
     }
 
     /// <summary>
@@ -401,6 +494,37 @@ public class CharacterGroupManager : MonoBehaviour
             Vector3 target = pivotPos + formationPositions[i];
             c.MoveToFormation(target);
         }
+    }
+
+
+    /// <summary>
+    /// Fills the provided PlayerFormationData using the specified shape and character type/count.
+    /// Does NOT touch live cached player formations.
+    /// </summary>
+    public void GetFormationSnapshot(PlayerFormationData snapshot, FormationShape shape, CharacterType type, int count)
+    {
+        if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+
+        FormationCalculator calc = shape switch
+        {
+            FormationShape.Square => SquareFormationCreator(count, type),
+            FormationShape.Horizontal => HorizontalFormationCreator(count, type),
+            FormationShape.Vertical => VerticalFormationCreator(count, type),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape))
+        };
+
+        snapshot.shape = shape;
+        snapshot.rows = calc.rows;
+        snapshot.cols = calc.cols;
+        snapshot.characterCount = count;
+        snapshot.rowDepth = calc.rowDepth.ToArray();
+        snapshot.characterType = type;
+        snapshot.rowsCharacterCounts = charactersPerRow;
+        snapshot.colsCharacterCounts = charactersPerColumn;
+
+
+
+        snapshot.AllocateDPSArrays(calc.rows, calc.cols);
     }
 
 }

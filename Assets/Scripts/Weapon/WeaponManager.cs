@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 
 /// <summary>
@@ -16,11 +19,13 @@ public class WeaponManager : MonoBehaviour
     WeaponSpawner weaponSpawner;
 
 
-    public WeaponType defaultWeaponType;
+    public WeaponType currentWeaponType;
     private List<Weapon> activeWeapons = new();
     private List<UpgradeData> activeUpgrades = new();
     private CachedStats cachedStats;
     private float fireTimer;
+
+    private List<UpgradeData> simulatedUpgrades; // For DPS Calculator
 
 
     void OnEnable() => UpgradeManager.OnUpgradeChanged += HandleUpgradeChange;
@@ -66,12 +71,12 @@ public class WeaponManager : MonoBehaviour
 
     void RecalculateCachedStats()
     {
-        cachedStats.weaponType = GetCurrentWeaponType();
-        cachedStats.bulletType = GetCurrentBulletType();
-        cachedStats.bulletSpeed = CalculateBulletSpeed();
-        cachedStats.bulletDamage = CalculateBulletDamage();
-        cachedStats.bulletRange = CalculateBulletRange();
-        cachedStats.fireRate = CalculateFireRate();
+        cachedStats.weaponType = GetCurrentWeaponType(activeUpgrades);
+        cachedStats.bulletType = GetCurrentBulletType(activeUpgrades);
+        cachedStats.bulletSpeed = CalculateBulletSpeed(currentWeaponType, activeUpgrades);
+        cachedStats.bulletDamage = CalculateBulletDamage(currentWeaponType, activeUpgrades);
+        cachedStats.bulletRange = CalculateBulletRange(currentWeaponType, activeUpgrades);
+        cachedStats.fireRate = CalculateFireRate(currentWeaponType, activeUpgrades);
     }
 
 
@@ -125,65 +130,132 @@ public class WeaponManager : MonoBehaviour
 
 
 
-    float CalculateBulletSpeed()
+    float CalculateBulletSpeed(WeaponType type, List<UpgradeData> upgrades)
     {
-        float speed = defaultWeaponType.bulletType.stats.speed;
+        float speed = type.bulletType.stats.speed;
         float totalUp = 1f;
-        foreach (var up in activeUpgrades)
+        foreach (var up in upgrades)
             if (up.type.category == UpgradeType.UpgradeTypeCategory.SpeedPercentage)
                 totalUp += up.value;
         return speed * totalUp;
     }
 
-    float CalculateBulletDamage()
+    float CalculateBulletDamage(WeaponType type, List<UpgradeData> upgrades)
     {
-        float damage = defaultWeaponType.bulletType.stats.damage;
+        float damage = type.bulletType.stats.damage;
         float totalUp = 1f;
-        foreach (var up in activeUpgrades)
+        foreach (var up in upgrades)
             if (up.type.category == UpgradeType.UpgradeTypeCategory.DamagePercentage)
                 totalUp += up.value;
         return damage * totalUp;
     }
-    float CalculateBulletRange()
+    float CalculateBulletRange(WeaponType type, List<UpgradeData> upgrades)
     {
-        float range = defaultWeaponType.bulletType.stats.range;
+        float range = type.bulletType.stats.range;
         float totalUp = 1f;
-        foreach (var up in activeUpgrades)
+        foreach (var up in upgrades)
             if (up.type.category == UpgradeType.UpgradeTypeCategory.RangePercentage)
                 totalUp += up.value;
         return range * totalUp;
     }
 
 
-    float CalculateFireRate()
+    float CalculateFireRate(WeaponType type, List<UpgradeData> upgrades)
     {
-        float rate = defaultWeaponType.fireRate;
+        float rate = type.fireRate;
         float totalUp = 1f;
-        foreach (var up in activeUpgrades)
+        foreach (var up in upgrades)
             if (up.type.category == UpgradeType.UpgradeTypeCategory.FireRatePercentage)
                 totalUp += up.value;
         return rate * totalUp;
     }
 
 
-    BulletType GetCurrentBulletType()
+    BulletType GetCurrentBulletType(List<UpgradeData> upgrades)
     {
-        foreach (var up in activeUpgrades)
+        foreach (var up in upgrades)
         {
             if (up.type is BulletTypeUpgrade bulletUpgrade)
                 return bulletUpgrade.bulletType;
         }
-        return defaultWeaponType.bulletType;
+        return currentWeaponType.bulletType;
     }
 
-    WeaponType GetCurrentWeaponType()
+    WeaponType GetCurrentWeaponType(List<UpgradeData> upgrades)
     {
-        foreach (var up in activeUpgrades)
+        foreach (var up in upgrades)
         {
             if (up.type is WeaponTypeUpgrade weaponUpgrade)
                 return weaponUpgrade.weaponType;
         }
-        return defaultWeaponType;
+        return currentWeaponType;
     }
 
+
+
+    /// <summary>
+    /// Calculates and updates the damage per second (DPS) values for each row and column in the specified player
+    /// formation.
+    /// </summary>
+    /// <remarks>This method resets the existing row and column DPS values before performing the calculation.</remarks>
+    /// <param name="data">The player formation data containing character positions and arrays to receive the calculated row and column DPS
+    /// values. Cannot be null, and its 'characters' property must not be null.</param>
+    public void FillDPS(PlayerFormationData data)
+    {
+        WeaponType typeWeapon;
+
+        if (data == null || data.characterCount == 0)
+            return;
+
+        if (data.upgrades == null)
+        {
+            simulatedUpgrades = activeUpgrades;
+            data.upgrades = activeUpgrades;
+        }
+        else simulatedUpgrades = data.upgrades;
+
+        if (data.weaponType == null)
+        { 
+            typeWeapon = currentWeaponType;
+            data.weaponType = currentWeaponType;
+        }
+        else typeWeapon = data.weaponType;
+
+        // Reset
+        for (int r = 0; r < data.rows; r++) data.rowDPS[r] = 0f;
+        for (int c = 0; c < data.cols; c++) data.colDPS[c] = 0f;
+
+
+
+        // Precompute weapon stats from upgrades
+        float damage = CalculateBulletDamage(typeWeapon, simulatedUpgrades);
+        float fireRate = CalculateFireRate(typeWeapon, simulatedUpgrades);
+        float speed = CalculateBulletSpeed(typeWeapon, simulatedUpgrades);
+        float range = CalculateBulletRange(typeWeapon, simulatedUpgrades);
+
+        float charDPS = damage * fireRate; // Single enemy DPS
+
+        // Set rowRanges, rowDPS and colDPS length
+        data.AllocateDPSArrays(data.rows, data.cols);
+
+
+        // Calculate total DPS for each row
+        for (int i = 0; i < data.rowDPS.Length; i++)
+        {
+            data.rowDPS[i] = charDPS * data.rowsCharacterCounts[i];
+        }
+
+        // Calculate total DPS for each column
+        for (int i = 0; i < data.colDPS.Length; i++)
+        {
+            data.colDPS[i] = charDPS * data.colsCharacterCounts[i];
+        }
+
+        // Calculate ranges of each row. Pivot point range is default.
+        for (int i = 0; i < data.rows; i++)
+        {
+            data.rowRanges[i] = data.rowDepth[i] + range;
+        }
+
+    }
 }

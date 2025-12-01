@@ -93,15 +93,15 @@ public class PivotController : MonoBehaviour
 
         if (playerInput.actions["SquareFormation"].triggered)
         {
-            characterGroupManager.SetFormationShape(CharacterGroupManager.FormationShape.Square);
+            characterGroupManager.SetFormationShape(FormationShape.Square);
         }
         if (playerInput.actions["HorizontalFormation"].triggered)
         {
-            characterGroupManager.SetFormationShape(CharacterGroupManager.FormationShape.Horizontal);
+            characterGroupManager.SetFormationShape(FormationShape.Horizontal);
         }
         if (playerInput.actions["VerticalFormation"].triggered)
         {
-            characterGroupManager.SetFormationShape(CharacterGroupManager.FormationShape.Vertical);
+            characterGroupManager.SetFormationShape(FormationShape.Vertical);
         }
 
  // END FOR TESTING PURPOSES ONLY
