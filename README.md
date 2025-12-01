@@ -2,7 +2,7 @@
 
 
 
-A fast-paced 3D mobile \*\*Shooter-Runner\*\* where your single fighter evolves into an unstoppable squad.
+A fast-paced 3D mobile **Shooter-Runner** where your single fighter evolves into an unstoppable squad.
 
 Slide left or right, blast through enemies, collect upgrades, and multiply your firepower as you charge forward.
 
@@ -16,7 +16,7 @@ Slide left or right, blast through enemies, collect upgrades, and multiply your 
 
 
 
-\*\*Blast Squad\*\* is a mobile action prototype built in Unity, combining the simplicity of a hyper-casual runner with the satisfying chaos of an auto-shooter.
+*Blast Squad* is a mobile action prototype built in Unity, combining the simplicity of a hyper-casual runner with the satisfying chaos of an auto-shooter.
 
 The game demonstrates professional Unity structure, clean version control, and scalable gameplay systems for mobile.
 
@@ -30,15 +30,15 @@ The game demonstrates professional Unity structure, clean version control, and s
 
 
 
-\- 🚀 \*\*Auto-Shooting:\*\* Player constantly fires forward while moving down the road.
+\- 🚀 *Auto-Shooting:* Player constantly fires forward while moving down the road.
 
-\- ↔️ \*\*Simple Controls:\*\* Swipe left or right to dodge obstacles and collect upgrades.
+\- ↔️ *Simple Controls:* Swipe left or right to dodge obstacles and collect upgrades.
 
-\- 💥 \*\*Dynamic Upgrades:\*\* Collect power-ups that change weapons, bullet types, or multiply your shooters.
+\- 💥 *Dynamic Upgrades:* Collect power-ups that change weapons, bullet types, or multiply your shooters.
 
-\- 👥 \*\*Squad Growth:\*\* Start alone, end with a full team of synchronized shooters.
+\- 👥 *Squad Growth:* Start alone, end with a full team of synchronized shooters.
 
-\- 🔄 \*\*Progressive Challenge:\*\* Increasing enemy density and reward pacing for fast testing cycles.
+\- 🔄 *Progressive Challenge:* Increasing enemy density and reward pacing for fast testing cycles.
 
 
 
@@ -92,7 +92,7 @@ The game demonstrates professional Unity structure, clean version control, and s
 
 
 
-🧩 Workflow Example (Professional Solo Dev)
+🧩 Workflow Example (Solo Dev)
 
 
 
