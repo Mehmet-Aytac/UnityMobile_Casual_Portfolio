@@ -16,7 +16,7 @@ public class Character : MonoBehaviour
     Vector3 targetPosition;
     public Weapon currentWeapon;
     public CharacterType type;
-    readonly int speedHash = Animator.StringToHash("Speed");
+    readonly int speedHash = Animator.StringToHash("Speed"); 
     Transform weaponAnchor;
 
 
@@ -65,7 +65,15 @@ public class Character : MonoBehaviour
             );
 
         Vector3 dir = targetPosition - transform.position;
+        
+        
+        
+        
         //animator.SetFloat(speedHash, dir.magnitude);
+
+
+
+
 
     }
 

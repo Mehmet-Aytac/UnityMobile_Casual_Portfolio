@@ -12,11 +12,8 @@ public class CharacterGroupManager : MonoBehaviour
 {
     [Header("Character Settings")]
     [SerializeField] private CharacterType activeCharacterType;
-    private float sizeX = 2.1f; // horizontalSize
-    private float sizeZ = 2.1f; // verticalSize
     public List<Character> characters = new List<Character>(); // All active characters in group
     public Transform pivot; // Invisible pivot used for input-based movement
-    public float formationSpacing = 3f; // Distance between characters
     
     // Limits
     public int MaxRows = 15;
@@ -25,22 +22,14 @@ public class CharacterGroupManager : MonoBehaviour
     // Computed formation geometry
     public int columns { get; private set; } = 1;
     public int rows { get; private set; } = 1;
-
-    public int idealRows { get; private set; } = 1;
-    public int idealCols { get; private set; } = 1;
     public float halfWidth { get; private set; } = 0.5f;
     public float halfLength { get; private set; } = 0.5f;
 
-    public List<float> rowDepth;
+    public float[] rowDepth;
 
     // per-column / per-row counts (updated on reformation)
     public int[] charactersPerColumn { get; private set; } = new int[0];
     public int[] charactersPerRow { get; private set; } = new int[0];
-
-    // per-character grid indices: column and row for each character index
-    // length equals characters.Count (keeps index mapping stable across frames)
-    public int[] characterColumnIndex { get; private set; } = new int[0];
-    public int[] characterRowIndex { get; private set; } = new int[0];
 
     // cached formation target positions (world-space offsets from pivot)
     private Vector3[] formationPositions;
@@ -53,18 +42,17 @@ public class CharacterGroupManager : MonoBehaviour
     public event Action<Character> OnCharacterRemoved;
 
     // managers
-
     CharacterSpawner characterSpawner;
 
     // formation mode
     [SerializeField] private FormationShape selectedShape = FormationShape.Square;
+
 
     void Start()
     {
         characterSpawner = ServiceLocator.Get<CharacterSpawner>();
 
         CacheAllFormationData();
-        UpdateFormationShape();
         StartCoroutine(FormationUpdateLoop(0.01f));
     }
 
@@ -107,12 +95,8 @@ public class CharacterGroupManager : MonoBehaviour
     public void SetActiveCharacterType(CharacterType newType)
     {
         activeCharacterType = newType;
-        sizeX = newType.horizontalSize;
-        sizeZ = newType.verticalSize;
 
         ChangeAllCharactersTo(newType);
-
-        UpdateFormationShape();  // apply new cached values
     }
 
     public void SetFormationShape(FormationShape shape)
@@ -162,7 +146,7 @@ public class CharacterGroupManager : MonoBehaviour
         public int[] charactersPerRow;
         public int[] charactersPerColumn;
         public Vector3[] formationPositions;
-        public List<float> rowDepth; // distance of each row from pivot
+        public float[] rowDepth; // distance of each row from pivot
     }
 
     public Dictionary<FormationShape, CachedFormationLayout> cachedFormations = new Dictionary<FormationShape, CachedFormationLayout>();
@@ -181,8 +165,8 @@ public class CharacterGroupManager : MonoBehaviour
         public int[] perRow;
         public int[] perCol;
         public Vector3[] positions;
-        public List<float> rowDepth;
-        public FormationCalculator(int maxRowsR, int maxColsR, int rowsR, int colsR, int[] perRowR, int[] perColR, Vector3[] positionsR, List<float> rowDepthR)
+        public float[] rowDepth;
+        public FormationCalculator(int maxRowsR, int maxColsR, int rowsR, int colsR, int[] perRowR, int[] perColR, Vector3[] positionsR, float[] rowDepthR)
         {
             maxRows = maxRowsR;
             maxCols = maxColsR;
@@ -233,13 +217,12 @@ public class CharacterGroupManager : MonoBehaviour
         // -----------------------
         // COMPUTE rowDepth (vertical distances)
         // -----------------------
-        List<float> rowDepthLocal = new List<float>();
+        float[] rowDepthLocal = new float[rowsLocal];
         float centerRow = (rowsLocal - 1) * 0.5f;
 
         for (int r = 0; r < rowsLocal; r++)
         {
-            float value = (centerRow - r) * type.verticalSize; // use vertical spacing (verticalSize)
-            rowDepthLocal.Add(value);
+            rowDepthLocal[r] = (centerRow - r) * type.verticalSize;
         }
 
 
@@ -300,13 +283,12 @@ public class CharacterGroupManager : MonoBehaviour
         // -----------------------
         // COMPUTE rowDepth (vertical distances)
         // -----------------------
-        List<float> rowDepthLocal = new List<float>();
+        float[] rowDepthLocal = new float[rowsLocal];
         float centerRow = (rowsLocal - 1) * 0.5f;
 
         for (int r = 0; r < rowsLocal; r++)
         {
-            float value = (centerRow - r) * type.verticalSize; // use vertical spacing (verticalSize)
-            rowDepthLocal.Add(value);
+            rowDepthLocal[r] = (centerRow - r) * type.verticalSize;
         }
 
         return new FormationCalculator(maxRows, maxCols, rowsLocal, colsLocal, perRow, perCol, positions, rowDepthLocal);
@@ -367,13 +349,12 @@ public class CharacterGroupManager : MonoBehaviour
         // -----------------------
         // COMPUTE rowDepth (vertical distances)
         // -----------------------
-        List<float> rowDepthLocal = new List<float>();
+        float[] rowDepthLocal = new float[rowsLocal];
         float centerRow = (rowsLocal - 1) * 0.5f;
 
         for (int r = 0; r < rowsLocal; r++)
         {
-            float value = (centerRow - r) * type.verticalSize; // use vertical spacing (verticalSize)
-            rowDepthLocal.Add(value);
+            rowDepthLocal[r] = (centerRow - r) * type.verticalSize;
         }
 
 
@@ -394,10 +375,11 @@ public class CharacterGroupManager : MonoBehaviour
 
         foreach (FormationShape shape in Enum.GetValues(typeof(FormationShape)))
         {
-            CachedFormationLayout data = new CachedFormationLayout();
 
-            
-           
+            CachedFormationLayout cachedData = new CachedFormationLayout();
+
+                
+
             FormationCalculator formation = new FormationCalculator();
 
             if (shape == FormationShape.Square)
@@ -416,21 +398,21 @@ public class CharacterGroupManager : MonoBehaviour
             // -----------------------
             // Set the variables for the "shape"
             // -----------------------
-            data.maxRows = formation.maxRows;
-            data.maxColumns = formation.maxCols;
-            data.rows = formation.rows;
-            data.columns = formation.cols;
-            data.halfWidth = (formation.cols - 1) * sizeX * 0.5f;
-            data.halfLength = (formation.rows - 1) * sizeZ * 0.5f;
-            data.charactersPerRow = formation.perRow;
-            data.charactersPerColumn = formation.perCol;
-            data.formationPositions = formation.positions;
-            data.rowDepth = formation.rowDepth;
+            cachedData.maxRows = formation.maxRows;
+            cachedData.maxColumns = formation.maxCols;
+            cachedData.rows = formation.rows;
+            cachedData.columns = formation.cols;
+            cachedData.halfWidth = (formation.cols - 1) * activeCharacterType.horizontalSize * 0.5f;
+            cachedData.halfLength = (formation.rows - 1) * activeCharacterType.verticalSize * 0.5f;
+            cachedData.charactersPerRow = formation.perRow;
+            cachedData.charactersPerColumn = formation.perCol;
+            cachedData.formationPositions = formation.positions;
+            cachedData.rowDepth = formation.rowDepth;
 
             // -----------------------
             // Save all data to cache with the "shape"
             // -----------------------
-            cachedFormations[shape] = data;
+            cachedFormations[shape] = cachedData;
         }
 
         // After caching all, apply the currently selected
@@ -442,7 +424,7 @@ public class CharacterGroupManager : MonoBehaviour
 
     /// <summary>
     /// 
-    /// Apply correct FormationShape cached data
+    /// Apply correct cached data for FormationShape
     /// 
     /// </summary>
     private void UpdateFormationShape()
@@ -459,7 +441,7 @@ public class CharacterGroupManager : MonoBehaviour
         charactersPerRow = (int[])data.charactersPerRow.Clone();
         charactersPerColumn = (int[])data.charactersPerColumn.Clone();
         formationPositions = (Vector3[])data.formationPositions.Clone();
-        rowDepth = new List<float>(data.rowDepth);
+        rowDepth = (float[])data.rowDepth.Clone();
 
         if (halfWidth != lastHalfWidth || halfLength != lastHalfLength)
         {
@@ -517,14 +499,10 @@ public class CharacterGroupManager : MonoBehaviour
         snapshot.rows = calc.rows;
         snapshot.cols = calc.cols;
         snapshot.characterCount = count;
-        snapshot.rowDepth = calc.rowDepth.ToArray();
+        snapshot.rowDepth = calc.rowDepth;
         snapshot.characterType = type;
-        snapshot.rowsCharacterCounts = charactersPerRow;
-        snapshot.colsCharacterCounts = charactersPerColumn;
-
-
-
-        snapshot.AllocateDPSArrays(calc.rows, calc.cols);
+        snapshot.rowsCharacterCounts = (int[])calc.perRow.Clone();
+        snapshot.colsCharacterCounts = (int[])calc.perCol.Clone();
     }
 
 }

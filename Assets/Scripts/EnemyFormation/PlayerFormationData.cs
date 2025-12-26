@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.Jobs.LowLevel.Unsafe;
 
 public class PlayerFormationData
 {
@@ -16,13 +15,15 @@ public class PlayerFormationData
     public CharacterType characterType;
 
     // DPS
+    public float characterDPS;
     public float[] rowDPS;
     public float[] colDPS;
     public float[] rowRanges;
 
     // Weapon
     public WeaponType weaponType;
-
+    public BulletType bulletType;
+    public float speed;
 
     public List<UpgradeData> upgrades;
 

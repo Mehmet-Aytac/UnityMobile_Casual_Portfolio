@@ -18,27 +18,32 @@ public class BulletPoolManager : MonoBehaviour
     }
 
     public List<PoolData> pools;
+    BulletManager bulletManager;
 
     private Dictionary<int, ObjectPool<Bullet>> poolDict = new();
 
     void Awake()
     {
+        bulletManager = ServiceLocator.Get<BulletManager>();
+
         foreach (var data in pools)
         {
+            var dataCopy = data; // capture-safe
+
             ObjectPool<Bullet> pool = new ObjectPool<Bullet>(
-                createFunc:() => CreateBullet(data),
+                createFunc: () => CreateBullet(dataCopy),
                 actionOnGet: b => b.gameObject.SetActive(true),
                 actionOnRelease: OnBulletRelease,
                 actionOnDestroy: b => Destroy(b.gameObject),
                 collectionCheck: false,
-                defaultCapacity: data.defaultCapacity,
-                maxSize: data.maxSize
+                defaultCapacity: dataCopy.defaultCapacity,
+                maxSize: dataCopy.maxSize
             );
 
-            poolDict[data.bulletType.idHash] = pool;
+            poolDict[dataCopy.bulletType.idHash] = pool;
 
-            // Prewarm without re-instantiating inside CreateBullet again
-            for (int i = 0; i < data.defaultCapacity; i++)
+            // Prewarm
+            for (int i = 0; i < dataCopy.defaultCapacity; i++)
             {
                 var bullet = pool.Get();
                 pool.Release(bullet);
@@ -46,10 +51,10 @@ public class BulletPoolManager : MonoBehaviour
         }
     }
 
-    
+
+
     void OnBulletRelease(Bullet b)
     {
-        b.ResetState();
         b.gameObject.SetActive(false);
     }
     Bullet CreateBullet(PoolData data)
@@ -69,7 +74,11 @@ public class BulletPoolManager : MonoBehaviour
     {
         if (!poolDict.TryGetValue(bulletType.idHash, out var pool)) return;
         Bullet b = pool.Get();
-        b.Initialize(bulletType, pos);
+
+        b.Initialize(spawnPos: pos,
+                     handler: bulletManager);
+
+        bulletManager.RegisterBullet(b);
         Transform parent = GetOrCreateGroup(SceneOrganizer.bulletRoot, bulletType.id);
         b.transform.SetParent(parent, false);
 
